@@ -1,21 +1,39 @@
+class Node {
+    public:
+    int key, val;
+    Node *left, *right;
+    Node(int _key, int _val) {
+        key = _key;
+        val = _val;
+    }
+};
+
 class LRUCache {
 public:
-    class node{
-        public:
-        int key, val;
-        node *left, *right;
-        node(int _key, int _val) {
-            key = _key;
-            val = _val;
-        }
-    };
-    node *head = new node(-1, -1);
-    node *tail = new node(-1, -1);
+    Node *head = new Node(-1,-1);
+    Node *tail = new Node(-1,-1);
+    unordered_map<int, Node*> u;
     int cap;
-    unordered_map<int, node*> u;
+    LRUCache(int capacity) {
+        cap = capacity;
+        head->right = tail;
+        tail->left = head;
+    }
     
-    void addNode(node* n) {
-        node* temp = head->right;
+    void remove(Node* n) {
+        n->left->right = n->right;
+        n->right->left = n->left;
+        // free(n);
+        u.erase(n->key);
+        // Node* prevNode = n->left;
+        // Node* nextNode = n->right;
+        // prevNode->right = nextNode;
+        // nextNode->left = prevNode;
+        // u.erase(n->key);
+    }
+    
+    void add(Node* n) {
+        Node* temp = head->right;
         n->left = head;
         n->right = temp;
         head->right = n;
@@ -23,43 +41,44 @@ public:
         u[n->key] = n;
     }
     
-    void removeNode(node* n) {
-        node* prevNode = n->left;
-        node* nextNode = n->right;
-        prevNode->right = nextNode;
-        nextNode->left = prevNode;
-        u.erase(n->key);
-    }
-    
-    LRUCache(int capacity) {
-        cap = capacity;
-        head->right = tail;
-        tail->left = head;
-    }
-    
     int get(int key) {
+        int val;
         if(u.find(key)!=u.end()) {
-            node* existingNode = u[key];
-            removeNode(existingNode);
-            addNode(existingNode);
-            return existingNode->val;
-        }
+            Node* existingNode = u[key];
+            val = u[key]->val;
+            remove(u[key]);
+            add(existingNode);
+            return val;
+        } 
         return -1;
     }
     
     void put(int key, int value) {
+        // Node* temp = new Node(key, value);
+        // u[key] = temp;
+        // if(cap<u.size()) {
+        //     head->right->left = temp;
+        //     temp->right = head->right;
+        // } else {
+        //     remove(tail->left);
+        //     head->right->left = temp;
+        //     temp->left = head;
+        //     temp->right = head->right;
+        //     head->right = temp;
+        // }
         if(u.find(key)!=u.end()) {
-            node* existingNode = u[key];
-            removeNode(existingNode);
+            Node* existingNode = u[key];
+            remove(existingNode);
             existingNode->val = value;
-            addNode(existingNode);
+            add(existingNode);
         } else {
-            node *nn = new node(key, value);
+            Node *nn = new Node(key, value);
             if(u.size()==cap){
-                removeNode(tail->left);
+                remove(tail->left);
             }
-            addNode(nn);
+            add(nn);
         }
+            
     }
 };
 
